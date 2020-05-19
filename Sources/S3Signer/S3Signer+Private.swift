@@ -143,16 +143,33 @@ extension S3Signer {
         return !url.path.isEmpty ? url.path.encode(type: .pathAllowed) ?? "/" : "/"
     }
     
-    func presignedURLCanonRequest(_ httpMethod: HTTPMethod, dates: Dates, expiration: Expiration, url: URL, region: Region, headers: [String: String]) throws -> (String, URL) {
+    func presignedURLCanonRequest(_ httpMethod: HTTPMethod, dates: Dates, expiration: Expiration, url: URL, region: Region, headers: [String: String]) throws -> (String, URLComponents) {
         guard let credScope = credentialScope(dates.short, region: region).encode(type: .queryAllowed),
             let signHeaders = signed(headers: headers).encode(type: .queryAllowed) else {
                 throw Error.invalidEncoding
         }
-        let fullURL = "\(url.absoluteString)?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=\(config.accessKey)%2F\(credScope)&X-Amz-Date=\(dates.long)&X-Amz-Expires=\(expiration.value)&X-Amz-SignedHeaders=\(signHeaders)"
+
+        let originalURL = url.absoluteString
+
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw Error.badURL(originalURL)
+        }
+
+        if components.queryItems == nil {
+            components.queryItems = []
+        }
+
+        components.queryItems?.append(contentsOf: [
+            URLQueryItem(name: "X-Amz-Algorithm", value: "AWS4-HMAC-SHA256"),
+            URLQueryItem(name: "X-Amz-Credential", value: "\(config.accessKey)/\(credScope)"),
+            URLQueryItem(name: "X-Amz-Date", value: dates.long),
+            URLQueryItem(name: "X-Amz-Expires", value: expiration.value.description),
+            URLQueryItem(name: "X-Amz-SignedHeaders", value: signHeaders)
+        ])
 
         // This should never throw.
-        guard let url = URL(string: fullURL) else {
-            throw Error.badURL(fullURL)
+        guard let url = components.url else {
+            throw Error.badURL(originalURL)
         }
         
         let query = try self.query(url) ?? ""
@@ -165,7 +182,7 @@ extension S3Signer {
                 signed(headers: headers),
                 "UNSIGNED-PAYLOAD"
                 ].joined(separator: "\n"),
-            url
+            components
         )
     }
     
@@ -209,11 +226,14 @@ extension S3Signer {
 
         updatedHeaders["host"] = url.host ?? region.host
 
-        let (canonRequest, fullURL) = try presignedURLCanonRequest(httpMethod, dates: dates, expiration: expiration, url: url, region: region, headers: updatedHeaders)
+        var (canonRequest, fullURL) = try presignedURLCanonRequest(httpMethod, dates: dates, expiration: expiration, url: url, region: region, headers: updatedHeaders)
 
         let stringToSign = try createStringToSign(canonRequest, dates: dates, region: region)
         let signature = try createSignature(stringToSign, timeStampShort: dates.short, region: region)
-        let presignedURL = URL(string: fullURL.absoluteString.appending("&X-Amz-Signature=\(signature)"))
+
+        fullURL.queryItems?.append(URLQueryItem(name: "X-Amz-Signature", value: signature))
+
+        let presignedURL = fullURL.url
         return presignedURL
     }
 

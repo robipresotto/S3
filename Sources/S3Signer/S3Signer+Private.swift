@@ -161,7 +161,7 @@ extension S3Signer {
 
         components.queryItems?.append(contentsOf: [
             URLQueryItem(name: "X-Amz-Algorithm", value: "AWS4-HMAC-SHA256"),
-            URLQueryItem(name: "X-Amz-Credential", value: "\(config.accessKey)/\(credScope)"),
+            URLQueryItem(name: "X-Amz-Credential", value: "\(config.accessKey)%2F\(credScope)"),
             URLQueryItem(name: "X-Amz-Date", value: dates.long),
             URLQueryItem(name: "X-Amz-Expires", value: expiration.value.description),
             URLQueryItem(name: "X-Amz-SignedHeaders", value: signHeaders)

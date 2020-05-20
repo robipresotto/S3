@@ -144,8 +144,9 @@ extension S3Signer {
     }
     
     func presignedURLCanonRequest(_ httpMethod: HTTPMethod, dates: Dates, expiration: Expiration, url: URL, region: Region, headers: [String: String]) throws -> (String, URLComponents) {
-        guard let credScope = credentialScope(dates.short, region: region).encode(type: .queryAllowed),
-            let signHeaders = signed(headers: headers).encode(type: .queryAllowed) else {
+        let credScope = credentialScope(dates.short, region: region)
+
+        guard let signHeaders = signed(headers: headers).encode(type: .queryAllowed) else {
                 throw Error.invalidEncoding
         }
 
@@ -161,7 +162,7 @@ extension S3Signer {
 
         components.queryItems?.append(contentsOf: [
             URLQueryItem(name: "X-Amz-Algorithm", value: "AWS4-HMAC-SHA256"),
-            URLQueryItem(name: "X-Amz-Credential", value: "\(config.accessKey)%2F\(credScope)"),
+            URLQueryItem(name: "X-Amz-Credential", value: "\(config.accessKey)/\(credScope)"),
             URLQueryItem(name: "X-Amz-Date", value: dates.long),
             URLQueryItem(name: "X-Amz-Expires", value: expiration.value.description),
             URLQueryItem(name: "X-Amz-SignedHeaders", value: signHeaders)

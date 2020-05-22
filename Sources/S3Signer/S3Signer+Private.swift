@@ -189,7 +189,7 @@ extension S3Signer {
     
     func query(_ url: URL) throws -> String? {
         if let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems {
-            let items = queryItems.map({ ($0.name.encode(type: .queryAllowed) ?? "", $0.value?.encode(type: .queryAllowed) ?? "") })
+            let items = queryItems.map({ ($0.name.encode(type: .queryAllowed) ?? "", $0.value?.encode(type: .queryAllowed)?.replacingOccurrences(of: "=", with: "%3D") ?? "") })
             let encodedItems = items.map({ "\($0.0)=\($0.1)" })
             return encodedItems.sorted().joined(separator: "&")
         }

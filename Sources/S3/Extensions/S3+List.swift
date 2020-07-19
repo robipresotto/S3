@@ -12,15 +12,23 @@ import Foundation
 extension S3 {
     
     /// Get list of objects
-    public func list(bucket: String, region: Region? = nil, headers: [String: String], on container: Container) throws -> Future<BucketResults> {
+    public func list(bucket: String, region: Region? = nil, headers: [String: String], continuationToken: String? = nil, on container: Container) throws -> Future<BucketResults> {
         let region = region ?? signer.config.region
         guard let baseUrl = URL(string: region.hostUrlString(bucket: bucket)), let host = baseUrl.host,
             var components = URLComponents(string: baseUrl.absoluteString) else {
             throw S3.Error.invalidUrl
         }
-        components.queryItems = [
+
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "list-type", value: "2")
         ]
+
+        if let continuationToken = continuationToken {
+            queryItems.append(URLQueryItem(name: "ContinuationToken", value: continuationToken))
+        }
+
+        components.queryItems = queryItems
+
         guard let url = components.url else {
             throw S3.Error.invalidUrl
         }
@@ -34,8 +42,8 @@ extension S3 {
     }
     
     /// Get list of objects
-    public func list(bucket: String, region: Region? = nil, on container: Container) throws -> Future<BucketResults> {
-        return try list(bucket: bucket, region: region, headers: [:], on: container)
+    public func list(bucket: String, region: Region? = nil, continuationToken: String? = nil, on container: Container) throws -> Future<BucketResults> {
+        return try list(bucket: bucket, region: region, headers: [:], continuationToken: continuationToken, on: container)
     }
     
 }

@@ -8,7 +8,9 @@
 import Foundation
 import Service
 @_exported import S3Signer
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 extension Services {
 

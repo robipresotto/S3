@@ -7,7 +7,9 @@
 
 import Foundation
 import Vapor
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// Base object for /buckets endpoint
 public struct BucketsInfo: Content {

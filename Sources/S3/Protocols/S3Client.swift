@@ -7,7 +7,9 @@
 
 import Foundation
 import Vapor
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// S3 client Protocol
 public protocol S3Client: Service {

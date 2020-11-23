@@ -7,7 +7,9 @@
 
 import Foundation
 @_exported import Vapor
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 extension Error {
     

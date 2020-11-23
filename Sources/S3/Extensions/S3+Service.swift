@@ -8,7 +8,9 @@
 import Foundation
 import Vapor
 import XMLCoding
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 // Helper S3 extension for working with services
 extension S3 {

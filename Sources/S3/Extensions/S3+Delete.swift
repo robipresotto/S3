@@ -7,7 +7,9 @@
 
 import Foundation
 import Vapor
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 // Helper S3 extension for deleting files by their URL/path
 extension S3 {

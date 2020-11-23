@@ -8,7 +8,9 @@
 import Foundation
 import Vapor
 import S3Signer
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 extension Region {
     

@@ -10,7 +10,9 @@ import Foundation
 import Vapor
 import HTTP
 @_exported import S3Signer
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 /// Main S3 class
 public class S3: S3Client {    

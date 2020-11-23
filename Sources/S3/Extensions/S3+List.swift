@@ -6,7 +6,9 @@
 //
 
 import Foundation
-
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 // Helper S3 extension for getting file indexes
 extension S3 {

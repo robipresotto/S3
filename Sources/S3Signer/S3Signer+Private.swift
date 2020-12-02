@@ -188,12 +188,23 @@ extension S3Signer {
     }
     
     func query(_ url: URL) throws -> String? {
-        if let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems {
-            let items = queryItems.map({ ($0.name.encode(type: .queryAllowed) ?? "", $0.value?.encode(type: .queryAllowed)?.replacingOccurrences(of: "=", with: "%3D") ?? "") })
-            let encodedItems = items.map({ "\($0.0)=\($0.1)" })
-            return encodedItems.sorted().joined(separator: "&")
-        }
-        return nil
+        guard let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else {
+			return nil
+		}
+		
+		let items = queryItems.map { item -> (String, String) in
+			let key = item.name.encode(type: .queryAllowed) ?? ""
+			let value = item.value?.encode(type: .queryAllowed) ?? ""
+			let patchedValue = value.replacingOccurrences(of: "=", with: "%3D")
+				.replacingOccurrences(of: "+", with: "%2B")
+				.replacingOccurrences(of: "/", with: "%2F")
+
+			return (key, patchedValue)
+		}
+
+		return items.map { "\($0.0)=\($0.1)" }
+			.sorted()
+			.joined(separator: "&")
     }
     
     func signed(headers: [String: String]) -> String {

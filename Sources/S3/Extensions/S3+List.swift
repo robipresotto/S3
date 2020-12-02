@@ -24,7 +24,7 @@ extension S3 {
         ]
 
         if let continuationToken = continuationToken {
-            queryItems.append(URLQueryItem(name: "ContinuationToken", value: continuationToken))
+            queryItems.append(URLQueryItem(name: "continuation-token", value: continuationToken))
         }
 
         components.queryItems = queryItems

@@ -191,15 +191,14 @@ extension S3Signer {
         guard let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else {
 			return nil
 		}
-		
-		let items = queryItems.map { item -> (String, String) in
-			let key = item.name.encode(type: .queryAllowed) ?? ""
-			let value = item.value?.encode(type: .queryAllowed) ?? ""
-			let patchedValue = value.replacingOccurrences(of: "=", with: "%3D")
-				.replacingOccurrences(of: "+", with: "%20")
-				.replacingOccurrences(of: "/", with: "%2F")
 
-			return (key, patchedValue)
+        var charset = CharacterSet.urlQueryAllowed
+        charset.remove(charactersIn: "+ =/")
+
+        let items = queryItems.map { item -> (String, String) in
+            let key = item.name.addingPercentEncoding(withAllowedCharacters: charset) ?? ""
+            let value = item.value?.addingPercentEncoding(withAllowedCharacters: charset) ?? ""
+			return (key, value)
 		}
 
 		return items.map { "\($0.0)=\($0.1)" }

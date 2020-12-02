@@ -29,9 +29,10 @@ extension S3 {
 
         components.queryItems = queryItems
 
-        guard let url = components.url else {
+        guard let _url = components.url, let url = URL(string: _url.absoluteString.replacingOccurrences(of: "+", with: "%2B")) else {
             throw S3.Error.invalidUrl
         }
+
         var headers = headers
         headers["host"] = host
         let awsHeaders = try signer.headers(for: .GET, urlString: url.absoluteString, region: region, bucket: bucket, headers: headers, payload: .none)
